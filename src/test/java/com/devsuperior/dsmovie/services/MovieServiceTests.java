@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -57,11 +58,12 @@ public class MovieServiceTests {
 		Mockito.when(repository.findById(nonExistingId)).thenReturn(Optional.empty());
 		Mockito.when(repository.getReferenceById(existingId)).thenReturn(movie);
 		Mockito.when(repository.getReferenceById(nonExistingId)).thenThrow(EntityNotFoundException .class);
+		Mockito.when(repository.getReferenceById(dependentId)).thenThrow(DataIntegrityViolationException .class);
 		Mockito.doNothing().when(repository).deleteById(existingId);
 		Mockito.when(repository.existsById(existingId)).thenReturn(true);
 		Mockito.when(repository.existsById(nonExistingId)).thenReturn(false);
 		Mockito.when(repository.existsById(dependentId)).thenReturn(true);
-		Mockito.doThrow(DatabaseException.class).when(repository).deleteById(dependentId);
+		Mockito.doThrow(DataIntegrityViolationException.class).when(repository).deleteById(dependentId);
 	}
 	
 	@Test
@@ -132,6 +134,7 @@ public class MovieServiceTests {
 	
 	@Test
 	public void deleteShouldThrowDatabaseExceptionWhenDependentId() {
+		//Mockito.doThrow(DataIntegrityViolationException.class).when(service).delete(dependentId);
 		Assertions.assertThrows(DatabaseException.class,()->{
 			service.delete(dependentId);
 		});
